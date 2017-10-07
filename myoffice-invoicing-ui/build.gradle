@@ -1,0 +1,48 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenLocal()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'com.moowork.gradle:gradle-node-plugin:1.2.0'
+    }
+}
+
+apply plugin: 'com.moowork.node'
+
+dependencies {
+    compile("edu.noia.myoffice:myoffice-invocing-rest:${version}")
+    compile('org.springframework.boot:spring-boot-starter-web')
+    runtime('org.springframework.boot:spring-boot-devtools')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+node {
+    download = true
+    nodeModulesDir = file("frontend")
+}
+
+task buildClientDev(type: NpmTask, dependsOn: 'npmInstall') {
+    group = 'build'
+    description = 'Compile client side folder for development'
+    args = ['run','testWithCoverage','buildDev']
+}
+
+task buildClientWatch(type: NpmTask, dependsOn: 'npmInstall') {
+    group = 'application'
+    description = "Build and watches the client side assets for rebuilding"
+    args = ['run','buildWatch']
+}
+
+task buildClient(type: NpmTask, dependsOn: 'npmInstall') {
+    group = 'build'
+    description = "Compile client side folder for production"
+    args = ['run','build']
+}
+
+bootRun.dependsOn(buildClientDev)
+
+jar.dependsOn(buildClient)

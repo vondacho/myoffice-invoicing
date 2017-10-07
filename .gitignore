@@ -1,0 +1,8 @@
+**/out/
+**/*.iml
+.idea/
+.gradle/
+**/build/
+**/node_modules/
+/myoffice-invoicing-ui/src/main/resources/static/
+/myoffice-invoicing-ui/frontend/coverage/

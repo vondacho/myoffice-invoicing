@@ -1,0 +1,77 @@
+allprojects {
+    apply plugin: 'java'
+    group 'edu.noia.myoffice'
+    version = '0.0.3'
+    repositories {
+        jcenter()
+        mavenLocal()
+        maven {
+            url myMavenRepoReadUrl
+
+            credentials {
+                username myMavenRepoReadUsername
+                password myMavenRepoReadPassword
+            }
+        }
+    }
+}
+
+buildscript {
+    ext {
+        springBootVersion = '1.5.6.RELEASE'
+        myofficeCommonVersion = '0.0.2'
+    }
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5'
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def badTasks = ['startScripts', 'distTar', 'distZip']
+    graph.allTasks.findAll {it.name in badTasks}.each { task ->
+        task.enabled = false
+    }
+}
+
+subprojects {
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'maven-publish'
+    apply plugin: "org.sonarqube"
+    sourceCompatibility = 1.8
+    dependencyManagement {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+        }
+    }
+    dependencies {
+        compile 'org.projectlombok:lombok:1.16.14'
+        testCompile 'org.mockito:mockito-core:2.8.47'
+        testCompile 'org.springframework.boot:spring-boot-starter-test'
+    }
+    publishing {
+        repositories {
+            maven {
+                url myMavenRepoWriteUrl
+                credentials {
+                    username myMavenRepoWriteUsername
+                    password myMavenRepoWritePassword
+                }
+            }
+        }
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.2'
+}
