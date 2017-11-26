@@ -6,8 +6,8 @@ allprojects {
         jcenter()
         mavenLocal()
         maven {
+            name 'mavenRemote'
             url myMavenRepoReadUrl
-
             credentials {
                 username myMavenRepoReadUsername
                 password myMavenRepoReadPassword
@@ -18,16 +18,22 @@ allprojects {
 
 buildscript {
     ext {
-        springBootVersion = '1.5.6.RELEASE'
-        myofficeCommonVersion = '0.0.2'
+        springBootVersion = '1.5.8.RELEASE'
+        lombokVersion = '1.16.18'
+        mokitoVersion = '2.8.47'
+        myofficeCommonVersion = '0.0.4'
     }
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5'
+        classpath 'io.franzbecker:gradle-lombok:1.10'
     }
 }
 
@@ -42,7 +48,8 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
     apply plugin: 'org.springframework.boot'
     apply plugin: 'maven-publish'
-    apply plugin: "org.sonarqube"
+    apply plugin: 'org.sonarqube'
+    apply plugin: 'io.franzbecker.gradle-lombok'
     sourceCompatibility = 1.8
     dependencyManagement {
         imports {
@@ -50,13 +57,15 @@ subprojects {
         }
     }
     dependencies {
-        compile 'org.projectlombok:lombok:1.16.14'
-        testCompile 'org.mockito:mockito-core:2.8.47'
+        compile("org.projectlombok:lombok:${lombokVersion}")
+        testCompile("org.mockito:mockito-core:${mokitoVersion}")
         testCompile 'org.springframework.boot:spring-boot-starter-test'
     }
     publishing {
         repositories {
+            mavenLocal()
             maven {
+                name 'mavenRemote'
                 url myMavenRepoWriteUrl
                 credentials {
                     username myMavenRepoWriteUsername
@@ -69,6 +78,31 @@ subprojects {
                 from components.java
             }
         }
+    }
+    lombok {
+        version = "${lombokVersion}"
+        sha256 = "" // skip verify Lombok task
+    }
+    task install(dependsOn: publishToMavenLocal)
+    task deploy(dependsOn: publish)
+}
+
+project(':myoffice-invoicing-data') {
+    dependencies {
+        compile project(':myoffice-invoicing-domain')
+    }
+}
+
+project(':myoffice-invoicing-rest') {
+    dependencies {
+        compile project(':myoffice-invoicing-domain'),
+                project(':myoffice-invoicing-data')
+    }
+}
+
+project(':myoffice-invoicing-ui') {
+    dependencies {
+        compile project(':myoffice-invoicing-rest')
     }
 }
 

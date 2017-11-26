@@ -14,7 +14,7 @@ buildscript {
 apply plugin: 'com.moowork.node'
 
 dependencies {
-    compile("edu.noia.myoffice:myoffice-invocing-rest:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-rest:${version}")
     compile('org.springframework.boot:spring-boot-starter-web')
     runtime('org.springframework.boot:spring-boot-devtools')
     testCompile('org.springframework.boot:spring-boot-starter-test')

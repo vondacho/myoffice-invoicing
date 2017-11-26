@@ -1,4 +1,4 @@
 rootProject.name = 'myoffice-invoicing'
-include 'myoffice-invoicing-domain'
-include 'myoffice-invoicing-ui'
-include 'myoffice-invoicing-rest'
+include 'myoffice-invoicing-domain','myoffice-invoicing-ui','myoffice-invoicing-rest'
+include 'myoffice-invoicing-data'
+
