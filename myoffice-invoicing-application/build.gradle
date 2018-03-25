@@ -1,0 +1,20 @@
+dependencies {
+    compile("edu.noia.myoffice:myoffice-invoicing-common:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-command:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-command-data:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-query:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-query-data:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-messaging:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-rest:${version}")
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+    compile("org.springframework.data:spring-data-rest-hal-browser:${springHalBrowserVersion}")
+    compile("io.springfox:springfox-swagger2:${springfoxVersion}")
+    compile("io.springfox:springfox-data-rest:${springfoxVersion}")
+    compile("io.springfox:springfox-swagger-ui:${springfoxVersion}")
+    compile("org.hsqldb:hsqldb:${hsqlDatabaseVersion}")
+    compile("org.flywaydb:flyway-core:${flywayVersion}")
+    compile 'mysql:mysql-connector-java'
+    compile("de.codecentric:spring-boot-admin-starter-client:${springBootAdminVersion}")
+}
+
+bootJar.enabled = true

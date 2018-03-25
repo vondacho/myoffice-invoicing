@@ -1,10 +1,26 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+    }
+    repositories {
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5'
+        classpath 'io.franzbecker:gradle-lombok:1.10'
+    }
+}
+
 allprojects {
     apply plugin: 'java'
     group 'edu.noia.myoffice'
-    version = '0.0.1'
+    version = '0.0.2'
     repositories {
         jcenter()
         mavenLocal()
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
         maven {
             name 'mavenRemote'
             url myMavenRepoReadUrl
@@ -13,27 +29,6 @@ allprojects {
                 password myMavenRepoReadPassword
             }
         }
-    }
-}
-
-buildscript {
-    ext {
-        springBootVersion = '1.5.8.RELEASE'
-        lombokVersion = '1.16.18'
-        mokitoVersion = '2.8.47'
-        myofficeCommonVersion = '0.0.4'
-    }
-    repositories {
-        jcenter()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5'
-        classpath 'io.franzbecker:gradle-lombok:1.10'
     }
 }
 
@@ -51,6 +46,19 @@ subprojects {
     apply plugin: 'org.sonarqube'
     apply plugin: 'io.franzbecker.gradle-lombok'
     sourceCompatibility = 1.8
+    ext {
+        myofficeCommonVersion = '0.0.11'
+        springBootAdminVersion = '2.0.0-SNAPSHOT'
+        springHalBrowserVersion = '3.0.3.RELEASE'
+        springfoxVersion = '2.8.0'
+        lombokVersion = '1.16.18'
+        mokitoVersion = '2.8.47'
+        jacksonVersion = '2.9.2'
+        axonVersion = '3.2'
+        h2DatabaseVersion = '1.4.196'
+        hsqlDatabaseVersion = '2.4.0'
+        flywayVersion = '5.0.7'
+    }
     dependencyManagement {
         imports {
             mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
@@ -85,9 +93,49 @@ subprojects {
     }
     task install(dependsOn: publishToMavenLocal)
     task deploy(dependsOn: publish)
+
+    bootJar.enabled = false
+    jar.enabled = true
 }
 
-project(':myoffice-invoicing-data') {
+project(':myoffice-invoicing-common') {
+    dependencies {
+        compile project(':myoffice-invoicing-domain')
+    }
+}
+
+project(':myoffice-invoicing-batch') {
+    dependencies {
+        compile project(':myoffice-invoicing-domain'),
+                project(':myoffice-invoicing-query-data')
+    }
+}
+
+project(':myoffice-invoicing-command') {
+    dependencies {
+        compile project(':myoffice-invoicing-common')
+    }
+}
+
+project(':myoffice-invoicing-command-data') {
+    dependencies {
+        compile project(':myoffice-invoicing-command')
+    }
+}
+
+project(':myoffice-invoicing-query') {
+    dependencies {
+        compile project(':myoffice-invoicing-common')
+    }
+}
+
+project(':myoffice-invoicing-query-data') {
+    dependencies {
+        compile project(':myoffice-invoicing-query')
+    }
+}
+
+project(':myoffice-invoicing-messaging') {
     dependencies {
         compile project(':myoffice-invoicing-domain')
     }
@@ -95,14 +143,20 @@ project(':myoffice-invoicing-data') {
 
 project(':myoffice-invoicing-rest') {
     dependencies {
-        compile project(':myoffice-invoicing-domain'),
-                project(':myoffice-invoicing-data')
+        compile project(':myoffice-invoicing-common')
+        compile project(':myoffice-invoicing-query-data')
     }
 }
 
-project(':myoffice-invoicing-ui') {
+project(':myoffice-invoicing-application') {
     dependencies {
-        compile project(':myoffice-invoicing-rest')
+        compile project(':myoffice-invoicing-common'),
+                project(':myoffice-invoicing-command'),
+                project(':myoffice-invoicing-command-data'),
+                project(':myoffice-invoicing-query'),
+                project(':myoffice-invoicing-query-data'),
+                project(':myoffice-invoicing-messaging'),
+                project(':myoffice-invoicing-rest')
     }
 }
 

@@ -1,0 +1,5 @@
+dependencies {
+    compile("edu.noia.myoffice:myoffice-invoicing-common:${version}")
+    compile 'org.springframework.boot:spring-boot-starter'
+    compile("org.axonframework:axon-spring-boot-starter:${axonVersion}")
+}

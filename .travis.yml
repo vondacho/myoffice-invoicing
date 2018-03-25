@@ -16,7 +16,7 @@ jdk:
   - oraclejdk8
 
 script:
-  - ./gradlew clean build publish sonarqube
+  - ./gradlew clean build deploy sonarqube
 
 cache:
   directories:

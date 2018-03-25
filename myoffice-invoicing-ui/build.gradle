@@ -22,7 +22,7 @@ dependencies {
 
 node {
     download = true
-    nodeModulesDir = file("frontend")
+    nodeModulesDir = file("src/ui")
 }
 
 task buildClientDev(type: NpmTask, dependsOn: 'npmInstall') {
@@ -43,6 +43,6 @@ task buildClient(type: NpmTask, dependsOn: 'npmInstall') {
     args = ['run','build']
 }
 
-//bootRun.dependsOn(buildClientDev)
+// bootRun.dependsOn(buildClientDev)
 
-//jar.dependsOn(buildClient)
+// jar.dependsOn(buildClient)

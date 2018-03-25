@@ -1,16 +1,14 @@
-dependencies {
-    compile("edu.noia.myoffice:myoffice-invoicing-domain:${version}")
-    compile("edu.noia.myoffice:myoffice-invoicing-data:${version}")
-    compile("edu.noia.myoffice:myoffice-common-rest:${myofficeCommonVersion}")
-    compile 'org.springframework.boot:spring-boot-starter-hateoas'
-    compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.springframework.boot:spring-boot-starter-actuator'
-    compile 'io.springfox:springfox-swagger2:2.7.0'
-    compile 'io.springfox:springfox-swagger-ui:2.7.0'
-    compile 'com.h2database:h2:1.4.196'
-    testCompile("edu.noia.myoffice:myoffice-common-testing:${myofficeCommonVersion}")
+group 'edu.noia.myoffice'
+version '0.0.1'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
 }
 
-bootRepackage {
-    enabled = false
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
 }

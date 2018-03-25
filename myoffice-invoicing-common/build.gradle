@@ -1,0 +1,5 @@
+dependencies {
+    compile("edu.noia.myoffice:myoffice-invoicing-domain:${version}")
+    compile("edu.noia.myoffice:myoffice-common-common:${myofficeCommonVersion}")
+    compile("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
+}
