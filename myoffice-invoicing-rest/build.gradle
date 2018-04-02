@@ -1,14 +1,9 @@
-group 'edu.noia.myoffice'
-version '0.0.1'
-
-apply plugin: 'java'
-
-sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile("edu.noia.myoffice:myoffice-invoicing-common:${version}")
+    compile("edu.noia.myoffice:myoffice-invoicing-query-data:${version}")
+    compile("edu.noia.myoffice:myoffice-common-rest:${myofficeCommonVersion}")
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-webflux'
+    compile("org.axonframework:axon-spring-boot-starter:${axonVersion}")
+    compile 'org.springframework.hateoas:spring-hateoas'
 }

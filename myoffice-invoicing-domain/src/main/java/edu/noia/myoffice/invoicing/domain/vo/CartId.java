@@ -1,17 +1,20 @@
 package edu.noia.myoffice.invoicing.domain.vo;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import edu.noia.myoffice.common.domain.vo.Identity;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
-@ToString
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(of = "id", callSuper = false, doNotUseGetters = true)
+@RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public final class CartId {
+public final class CartId implements Identity {
+    @NonNull
     UUID id;
+
+    public static CartId random() {
+        return new CartId(UUID.randomUUID());
+    }
 }

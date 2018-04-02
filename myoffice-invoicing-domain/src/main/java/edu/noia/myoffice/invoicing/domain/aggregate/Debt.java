@@ -1,7 +1,7 @@
 package edu.noia.myoffice.invoicing.domain.aggregate;
 
 import edu.noia.myoffice.common.domain.entity.BaseEntity;
-import edu.noia.myoffice.common.domain.event.EventPublisher;
+import edu.noia.myoffice.common.domain.event.EventPayload;
 import edu.noia.myoffice.common.domain.vo.Amount;
 import edu.noia.myoffice.common.util.holder.Holder;
 import edu.noia.myoffice.common.util.validation.BeanValidator;
@@ -9,16 +9,19 @@ import edu.noia.myoffice.invoicing.domain.event.debt.*;
 import edu.noia.myoffice.invoicing.domain.repository.DebtRepository;
 import edu.noia.myoffice.invoicing.domain.vo.DebtId;
 import edu.noia.myoffice.invoicing.domain.vo.DebtSample;
-import edu.noia.myoffice.invoicing.domain.vo.DebtStatus;
 import edu.noia.myoffice.invoicing.domain.vo.Payment;
+import edu.noia.myoffice.invoicing.domain.vo.Recall;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.function.Consumer;
 
 import static edu.noia.myoffice.common.util.validation.Rule.condition;
+import static edu.noia.myoffice.invoicing.domain.vo.DebtStatus.*;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,13 +36,13 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
         return BeanValidator.validate(state);
     }
 
-    public static Debt create(DebtState state, EventPublisher eventPublisher) {
-        DebtSample sample = DebtSample.from(validateBean(state));
+    public static Debt create(DebtState state, Consumer<EventPayload> eventPublisher) {
+        DebtSample sample = DebtSample.from(validateBean(state)).setStatus(CREATED);
         Debt debt = new Debt(sample);
         if (state.getCartId() != null) {
-            eventPublisher.publish(InvoiceCreatedEventPayload.of(debt.getId(), sample));
+            eventPublisher.accept(InvoiceCreatedEventPayload.of(debt.getId(), sample));
         } else {
-            eventPublisher.publish(RequestCreatedEventPayload.of(debt.getId(), sample));
+            eventPublisher.accept(RequestCreatedEventPayload.of(debt.getId(), sample));
         }
         return debt;
     }
@@ -55,55 +58,65 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
     }
 
     public Amount getTotal() {
-        return state.getAmount();
-        //return state.getDiscount().apply(state.getAmount().plus(state.getTax().apply(state.getAmount())));
+        return state.getDiscountRate().iapply(state.getAmount().iplus(state.getTaxRate().iapply(state.getAmount())));
     }
 
     public Amount getDebt() {
-        return getTotal().minus(state.getPayedAmount().toImmutable());
+        return getTotal().iminus(state.getPayedAmount());
     }
 
-    public Amount pay(Payment payment, EventPublisher eventPublisher) {
-        condition(() -> DebtStatus.VALIDATED == state.getStatus(), String.format("Debt {} is not validated or already closed", getId()));
+    public void validate(DebtState modifier, Consumer<EventPayload> eventPublisher) {
+        condition(() -> CREATED == state.getStatus(), String.format("Debt %s has been already validated", getId()));
+        validate(modifier);
+        eventPublisher.accept(DebtValidatedEventPayload.of(getId(), DebtSample.from(modifier)));
+    }
+
+    public Amount pay(Payment payment, Consumer<EventPayload> eventPublisher) {
+        condition(() -> VALIDATED == state.getStatus(), String.format("Debt %s is not validated or already closed", getId()));
         Amount debt = getDebt();
         if (debt.se(payment.getAmount())) {
-            eventPublisher.publish(DebtPayedEventPayload.of(getId(), Payment.of(debt, payment.getDate(), payment.getTicket())));
-            eventPublisher.publish(DebtClosedEventPayload.of(getId()));
-            return payment.getAmount().minus(debt);
+            eventPublisher.accept(PaymentDoneEventPayload.of(getId(), Payment.of(debt, payment.getDate(), payment.getTicket())));
+            eventPublisher.accept(DebtClosedEventPayload.of(getId()));
+            return payment.getAmount().iminus(debt);
         } else {
-            eventPublisher.publish(DebtPayedEventPayload.of(getId(), payment));
+            eventPublisher.accept(PaymentDoneEventPayload.of(getId(), payment));
             return Amount.ZERO;
         }
     }
 
-    public void validate(DebtState modifier, EventPublisher eventPublisher) {
-        condition(() -> DebtStatus.CREATED == state.getStatus(), String.format("Debt {} has been already validated", getId()));
-        validate(modifier);
-        eventPublisher.publish(DebtValidatedEventPayload.of(getId(), DebtSample.from(modifier)));
+    public void recall(Consumer<EventPayload> eventPublisher) {
+        condition(() -> VALIDATED == state.getStatus(), String.format("Debt %s is not validated or already closed", getId()));
+        eventPublisher.accept(RecallEmittedEventPayload.of(getId(), Recall.of(getDebt(), LocalDate.now())));
     }
 
     public Holder<Debt> save(DebtRepository repository) {
         return repository.save(id, state);
     }
 
-    protected void create(InvoiceCreatedEventPayload event, Instant timestamp) {
+    protected void created(InvoiceCreatedEventPayload event, Instant timestamp) {
         id = event.getDebtId();
         state = DebtSample.from(event.getDebtSample());
         andEvent(event, timestamp);
     }
 
-    protected void validate(DebtValidatedEventPayload event, Instant timestamp) {
-        state.validate(event.getDebtState());
+    protected void validated(DebtValidatedEventPayload event, Instant timestamp) {
+        state.modify(event.getDebtState());
+        state.setStatus(VALIDATED);
         andEvent(event, timestamp);
     }
 
-    protected void pay(DebtPayedEventPayload event, Instant timestamp) {
-        state.pay(event.getPayment().getAmount());
+    protected void payed(PaymentDoneEventPayload event, Instant timestamp) {
+        state.pay(event.getPayment());
         andEvent(event, timestamp);
     }
 
-    protected void close(DebtClosedEventPayload event, Instant timestamp) {
-        state.close();
+    protected void recalled(RecallEmittedEventPayload event, Instant timestamp) {
+        state.addRecall(event.getRecall());
+        andEvent(event, timestamp);
+    }
+
+    protected void closed(DebtClosedEventPayload event, Instant timestamp) {
+        state.setStatus(CLOSED);
         andEvent(event, timestamp);
     }
 }

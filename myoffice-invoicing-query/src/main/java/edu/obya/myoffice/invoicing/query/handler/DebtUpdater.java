@@ -1,49 +1,47 @@
 package edu.obya.myoffice.invoicing.query.handler;
 
-import edu.noia.myoffice.sale.domain.event.cart.CartCreatedEventPayload;
-import edu.noia.myoffice.sale.domain.event.cart.CartInvoicedEventPayload;
-import edu.noia.myoffice.sale.domain.event.cart.CartOrderedEventPayload;
-import edu.noia.myoffice.sale.domain.event.item.ItemAddedToCartEventPayload;
-import edu.noia.myoffice.sale.domain.event.item.ItemRemovedFromCartEventPayload;
-import edu.noia.myoffice.sale.domain.vo.CartSample;
-import edu.noia.myoffice.sale.query.repository.CartStateRepository;
+import edu.noia.myoffice.invoicing.domain.event.debt.*;
+import edu.noia.myoffice.invoicing.domain.vo.DebtSample;
+import edu.obya.myoffice.invoicing.query.repository.DebtStateRepository;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import static edu.noia.myoffice.invoicing.domain.vo.DebtStatus.CLOSED;
+
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PROTECTED)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class DebtUpdater {
 
     @NonNull
-    CartStateRepository repository;
+    DebtStateRepository repository;
 
-    public void created(CartCreatedEventPayload event) {
-        repository.save(event.getCartId(), CartSample.from(event.getCartSpecification()));
+    public void created(InvoiceCreatedEventPayload event) {
+        repository.save(event.getDebtId(), DebtSample.from(event.getDebtSample()));
     }
 
-    public void itemAdded(ItemAddedToCartEventPayload event) {
+    public void validated(DebtValidatedEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.add(event.getCartItem()));
+                .findById(event.getDebtId())
+                .ifPresent(state -> state.modify(event.getDebtState()));
     }
 
-    public void itemRemoved(ItemRemovedFromCartEventPayload event) {
+    public void payed(PaymentDoneEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.remove(event.getCartItemId()));
+                .findById(event.getDebtId())
+                .ifPresent(state -> state.pay(event.getPayment()));
     }
 
-    public void ordered(CartOrderedEventPayload event) {
+    public void recalled(RecallEmittedEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.setOrderId(event.getOrderId()));
+                .findById(event.getDebtId())
+                .ifPresent(state -> state.addRecall(event.getRecall()));
     }
 
-    public void invoiced(CartInvoicedEventPayload event) {
+    public void closed(DebtClosedEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.setInvoiceId(event.getInvoiceId()));
+                .findById(event.getDebtId())
+                .ifPresent(state -> state.setStatus(CLOSED));
     }
 }

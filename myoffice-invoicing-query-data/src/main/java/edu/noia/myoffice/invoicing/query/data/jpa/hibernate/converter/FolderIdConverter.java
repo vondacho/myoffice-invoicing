@@ -1,6 +1,6 @@
 package edu.noia.myoffice.invoicing.query.data.jpa.hibernate.converter;
 
-import edu.noia.myoffice.sale.domain.vo.FolderId;
+import edu.noia.myoffice.invoicing.domain.vo.FolderId;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.AttributeConverter;

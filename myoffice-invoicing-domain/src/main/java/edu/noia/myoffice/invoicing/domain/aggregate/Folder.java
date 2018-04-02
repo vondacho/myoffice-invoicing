@@ -1,26 +1,22 @@
 package edu.noia.myoffice.invoicing.domain.aggregate;
 
 import edu.noia.myoffice.common.domain.entity.BaseEntity;
-import edu.noia.myoffice.common.domain.event.EventPublisher;
+import edu.noia.myoffice.common.domain.event.EventPayload;
 import edu.noia.myoffice.common.domain.vo.Amount;
 import edu.noia.myoffice.common.util.holder.Holder;
 import edu.noia.myoffice.invoicing.domain.event.folder.*;
 import edu.noia.myoffice.invoicing.domain.repository.FolderRepository;
-import edu.noia.myoffice.invoicing.domain.vo.FolderId;
-import edu.noia.myoffice.invoicing.domain.vo.FolderSample;
-import edu.noia.myoffice.invoicing.domain.vo.Payment;
-import edu.noia.myoffice.invoicing.domain.vo.Ticket;
+import edu.noia.myoffice.invoicing.domain.vo.*;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.function.Consumer;
 
 import static edu.noia.myoffice.common.util.validation.Rule.condition;
 import static edu.noia.myoffice.invoicing.domain.aggregate.Debt.validateBean;
-import static java.util.Collections.unmodifiableList;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -31,93 +27,82 @@ public class Folder extends BaseEntity<Folder, FolderId, FolderSample> {
         super(folderId, new FolderSample());
     }
 
-    public static Folder of(FolderId folderId, EventPublisher eventPublisher) {
+    public static Folder create(FolderId folderId, Consumer<EventPayload> eventPublisher) {
         Folder folder = new Folder(folderId);
-        eventPublisher.publish(FolderCreatedEventPayload.of(folder.getId()));
+        eventPublisher.accept(FolderCreatedEventPayload.of(folder.getId()));
         return folder;
     }
 
-    public List<Ticket> getTickets() {
-        return unmodifiableList(state.getTickets());
+    public void ask(Amount amount, Consumer<EventPayload> eventPublisher) {
+        condition(() -> state.getDebtAmount().gt(Amount.ZERO), String.format("Folder %s has no overdraft", getId()));
+        eventPublisher.accept(ProvisionAskedEventPayload.of(getId(), amount));
     }
 
-    public Amount getDebt() {
-        return state.getDebtAmount().toImmutable();
+    public void charge(Amount amount, Consumer<EventPayload> eventPublisher) {
+        eventPublisher.accept(ChargeAccumulatedEventPayload.of(getId(), amount));
     }
 
-    public Amount getProvisions() {
-        return state.getProvisionedAmount().toImmutable();
+    public void consume(Amount amount, Consumer<EventPayload> eventPublisher) {
+        condition(() -> state.getProvisionedAmount().gt(Amount.ZERO), String.format("Folder %s has no overdraft", getId()));
+        eventPublisher.accept(ProvisionUsedEventPayload.of(getId(), amount));
     }
 
-    public void ask(Amount amount, EventPublisher eventPublisher) {
-        condition(() -> getDebt().gt(Amount.ZERO), String.format("Folder {} has no overdraft", getId()));
-        eventPublisher.publish(ProvisionAskedEventPayload.of(getId(), amount));
+    public void pay(Payment payment, Consumer<EventPayload> eventPublisher) {
+        eventPublisher.accept(PaymentReceivedEventPayload.of(getId(), payment));
     }
 
-    public void charge(Amount amount, EventPublisher eventPublisher) {
-        eventPublisher.publish(ChargeAccumulatedEventPayload.of(getId(), amount));
+    public void provision(Payment payment, Consumer<EventPayload> eventPublisher) {
+        eventPublisher.accept(ProvisionCreatedEventPayload.of(getId(), payment));
     }
 
-    public void consume(Amount amount, EventPublisher eventPublisher) {
-        condition(() -> getProvisions().gt(Amount.ZERO), String.format("Folder {} has no overdraft", getId()));
-        eventPublisher.publish(ProvisionUsedEventPayload.of(getId(), amount));
-    }
-
-    public void pay(Payment payment, EventPublisher eventPublisher) {
-        eventPublisher.publish(PaymentReceivedEventPayload.of(getId(), payment));
-    }
-
-    public void provision(Payment payment, EventPublisher eventPublisher) {
-        eventPublisher.publish(ProvisionCreatedEventPayload.of(getId(), payment));
-    }
-
-    public void register(Ticket ticket, EventPublisher eventPublisher) {
-        condition(() -> !getTickets().contains(ticket),
-                String.format("Folder {} already contains ticket {}", getId(), ticket.getNumber()));
-        eventPublisher.publish(TicketRegisteredEventPayload.of(getId(), ticket));
+    public void register(Ticket ticket, Consumer<EventPayload> eventPublisher) {
+        condition(() -> !state.getTickets().contains(ticket),
+                String.format("Folder %s already contains ticket %s", getId(), ticket.getId()));
+        eventPublisher.accept(TicketRegisteredEventPayload.of(getId(), ticket));
     }
 
     public Holder<Folder> save(FolderRepository repository) {
-        return repository.save(id);
+        return repository.save(id, state);
     }
 
-    protected void create(FolderCreatedEventPayload event, Instant timestamp) {
+    protected void created(FolderCreatedEventPayload event, Instant timestamp) {
         id = event.getFolderId();
         state = new FolderSample();
         andEvent(event, timestamp);
     }
 
-    protected void affiliate(FolderJoinedEventPayload event, Instant timestamp) {
-        state.affiliate(event.getCustomerId());
+    protected void asked(ProvisionAskedEventPayload event, Instant timestamp) {
+        state.ask(event.getAmount());
         andEvent(event, timestamp);
     }
 
-    protected void ask(ProvisionAskedEventPayload event, Instant timestamp) {
-        andEvent(event, timestamp);
-    }
-
-    protected void charge(ChargeAccumulatedEventPayload event, Instant timestamp) {
+    protected void charged(ChargeAccumulatedEventPayload event, Instant timestamp) {
         state.charge(event.getAmount());
         andEvent(event, timestamp);
     }
 
-    protected void provision(ProvisionCreatedEventPayload event, Instant timestamp) {
+    protected void provisioned(ProvisionCreatedEventPayload event, Instant timestamp) {
         state.provision(event.getPayment().getAmount());
         andEvent(event, timestamp);
     }
 
-    protected void consume(ProvisionUsedEventPayload event, Instant timestamp) {
+    protected void consumed(ProvisionUsedEventPayload event, Instant timestamp) {
         state.consume(event.getAmount());
         andEvent(event, timestamp);
     }
 
-    protected void pay(PaymentReceivedEventPayload event, Instant timestamp) {
+    protected void payed(PaymentReceivedEventPayload event, Instant timestamp) {
         state.consume(event.getPayment().getAmount());
         andEvent(event, timestamp);
     }
 
-    protected void register(TicketRegisteredEventPayload event, Instant timestamp) {
+    protected void registered(TicketRegisteredEventPayload event, Instant timestamp) {
         state.addTicket(event.getTicket());
+        andEvent(event, timestamp);
+    }
+
+    protected void affiliated(FolderJoinedEventPayload event, Instant timestamp) {
+        state.addAffiliate(Affiliate.of(event.getCustomerId()));
         andEvent(event, timestamp);
     }
 

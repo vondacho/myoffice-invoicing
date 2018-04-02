@@ -1,39 +1,38 @@
 package edu.noia.myoffice.invoicing.domain.service;
 
+import edu.noia.myoffice.common.domain.event.EventPayload;
 import edu.noia.myoffice.common.domain.event.EventPublisher;
 import edu.noia.myoffice.common.domain.vo.Amount;
-import edu.noia.myoffice.common.domain.vo.MutableAmount;
-import edu.noia.myoffice.common.domain.vo.Percentage;
+import edu.noia.myoffice.common.util.holder.DefaultHolder;
 import edu.noia.myoffice.common.util.holder.Holder;
 import edu.noia.myoffice.invoicing.domain.aggregate.Debt;
+import edu.noia.myoffice.invoicing.domain.aggregate.DebtState;
 import edu.noia.myoffice.invoicing.domain.aggregate.Folder;
-import edu.noia.myoffice.invoicing.domain.command.*;
+import edu.noia.myoffice.invoicing.domain.command.debt.PayDebtCommand;
+import edu.noia.myoffice.invoicing.domain.command.debt.RecallDebtCommand;
+import edu.noia.myoffice.invoicing.domain.command.folder.AskCommand;
+import edu.noia.myoffice.invoicing.domain.command.folder.CreateFolderCommand;
+import edu.noia.myoffice.invoicing.domain.command.folder.InvoiceCartCommand;
+import edu.noia.myoffice.invoicing.domain.command.folder.RegisterTicketCommand;
 import edu.noia.myoffice.invoicing.domain.repository.DebtRepository;
 import edu.noia.myoffice.invoicing.domain.repository.FolderRepository;
-import edu.noia.myoffice.invoicing.domain.vo.DebtId;
-import edu.noia.myoffice.invoicing.domain.vo.DebtSample;
-import edu.noia.myoffice.invoicing.domain.vo.FolderId;
-import edu.noia.myoffice.invoicing.domain.vo.Payment;
+import edu.noia.myoffice.invoicing.domain.vo.*;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Consumer;
 
 import static edu.noia.myoffice.common.util.exception.ExceptionSuppliers.notFound;
 import static java.time.LocalDate.now;
 
-@Slf4j
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class InvoicingService {
 
-    private static final Percentage DEFAULT_TAX_RATE = Percentage.of(8L);
-    private static final Percentage DEFAULT_DISCOUNT_RATE = Percentage.ZERO;
-    private static final int DEFAULT_DELAY_DAY_COUNT = 30;
-
+    @NonNull
+    DefaultValues defaultValues;
     @NonNull
     FolderRepository folderRepository;
     @NonNull
@@ -42,71 +41,73 @@ public class InvoicingService {
     EventPublisher eventPublisher;
 
     public void create(CreateFolderCommand command) {
-        LOG.debug("{} received command: {}", getClass(), command);
-        Folder.of(command.getFolderId(), eventPublisher).save(folderRepository);
+        Folder.create(command.getFolderId(), eventPublisher::publish).save(folderRepository);
     }
 
-    public void ask(CreateRequestCommand command) {
-        LOG.debug("{} received command: {}", getClass(), command);
+    public void ask(AskCommand command) {
         applyOn(command.getFolderId(), folder ->
-                Debt.create(DebtSample.of(command.getFolderId(), command.getAmount())
-                        .setDiscountRate(DEFAULT_DISCOUNT_RATE)
-                        .setTaxRate(DEFAULT_TAX_RATE)
-                        .setDelayDayCount(DEFAULT_DELAY_DAY_COUNT)
-                        .setDelayDate(now().plusDays(DEFAULT_DELAY_DAY_COUNT)), eventPublisher)
-                        .save(debtRepository)
-                        .execute(debt -> folder.ask(debt.getTotal(), eventPublisher)));
+                create(DebtSample.of(command.getFolderId(), command.getAmount())
+                        .setDiscountRate(defaultValues.getDiscountRate())
+                        .setTaxRate(defaultValues.getTaxRate())
+                        .setDelayDayCount(defaultValues.getDelayDayCount())
+                        .setDelayDate(now().plusDays(defaultValues.getDelayDayCount())), eventPublisher::publish)
+                        .execute(debt -> {
+                            folder.ask(debt.getTotal(), eventPublisher::publish);
+                            debt.save(debtRepository);
+                        }));
     }
 
-    public void charge(CreateInvoiceCommand command) {
-        LOG.debug("{} received command: {}", getClass(), command);
+    public void charge(InvoiceCartCommand command) {
         applyOn(command.getFolderId(), folder ->
-                Debt.create(DebtSample.of(command.getFolderId(), command.getCartId(), command.getCartAmount())
-                        .setDiscountRate(DEFAULT_DISCOUNT_RATE)
-                        .setTaxRate(DEFAULT_TAX_RATE)
-                        .setDelayDayCount(DEFAULT_DELAY_DAY_COUNT)
-                        .setDelayDate(now().plusDays(DEFAULT_DELAY_DAY_COUNT)), eventPublisher)
-                        .save(debtRepository)
-                        .execute(debt -> folder.charge(debt.getTotal(), eventPublisher)));
+                create(DebtSample.of(command.getFolderId(), command.getCartId(), command.getAmount())
+                        .setDiscountRate(defaultValues.getDiscountRate())
+                        .setTaxRate(defaultValues.getTaxRate())
+                        .setDelayDayCount(defaultValues.getDelayDayCount())
+                        .setDelayDate(now().plusDays(defaultValues.getDelayDayCount())), eventPublisher::publish)
+                        .execute(debt -> {
+                            folder.charge(debt.getTotal(), eventPublisher::publish);
+                            debt.save(debtRepository);
+                        }));
     }
 
-    public void pay(PayCommand command) {
-        LOG.debug("{} received command: {}", getClass(), command);
-        // TODO find open debts
-        applyOn(command.getFolderId(), folder -> folder.pay(command.getPayment(), eventPublisher));
+    protected Holder<Debt> create(DebtState state, Consumer<EventPayload> eventConsumer) {
+        return DefaultHolder.of(Debt.create(state, eventConsumer));
     }
 
     public void pay(PayDebtCommand command) {
-        LOG.debug("{} received command: {}", getClass(), command);
         applyOn(command.getFolderId(), folder -> {
             Amount availableAmount = command.getDebts().stream()
                     .map(this::find)
                     .reduce(command.getPayment().getAmount(),
-                            (a, hd) -> {
-                                MutableAmount ma = a.toMutable();
-                                hd.execute(debt ->
-                                        ma.set(debt.pay(Payment.of(
-                                                a,
-                                                command.getPayment().getDate(),
-                                                command.getPayment().getTicket()), eventPublisher)));
-                                return ma.toImmutable();
+                            (available, debt) -> {
+                                if (available.gt(Amount.ZERO)) {
+                                    Amount remaining = Amount.from(available);
+                                    debt.execute(d ->
+                                            remaining.set(d.pay(Payment.of(
+                                                    remaining,
+                                                    command.getPayment().getDate(),
+                                                    command.getPayment().getTicket()), eventPublisher::publish)));
+                                    return remaining;
+                                } else return Amount.ZERO;
                             },
                             (a, b) -> b);
 
-            folder.pay(command.getPayment(), eventPublisher);
+            folder.pay(command.getPayment(), eventPublisher::publish);
             if (availableAmount.gt(Amount.ZERO)) {
                 folder.provision(
                         Payment.of(availableAmount, command.getPayment().getDate(), command.getPayment().getTicket()),
-                        eventPublisher);
+                        eventPublisher::publish);
             }
         });
     }
 
-    public void register(RegisterTicketCommand command) {
-        LOG.debug("{} received command: {}", getClass(), command);
-        applyOn(command.getFolderId(), folder -> folder.register(command.getTicket(), eventPublisher));
+    public void recall(RecallDebtCommand command) {
+        applyOn(command.getDebtId(), debt -> debt.recall(eventPublisher::publish));
     }
 
+    public void register(RegisterTicketCommand command) {
+        applyOn(command.getFolderId(), folder -> folder.register(command.getTicket(), eventPublisher::publish));
+    }
 
     public void applyOn(FolderId folderId, Consumer<Folder> action) {
         find(folderId).execute(action);
@@ -123,24 +124,4 @@ public class InvoicingService {
     private Holder<Debt> find(DebtId debtId) {
         return debtRepository.findOne(debtId).orElseThrow(notFound(Debt.class, debtId));
     }
-
-/*
-    public List<Receipt> cash(FolderId folderId, Payment payment, List<Debt> debts) {
-        List<Receipt> receipts = new ArrayList<>();
-
-        Amount balance = Amount.of(payment.getAmount());
-
-        for (Debt debt: debts) {
-            receipts.add(Receipt.of(balance, payment.getDate()));
-            balance = debt.pay(Payment.of(balance, payment.getDate(), payment.getTicket()));
-            dataService.save(debt);
-        }
-
-        if (balance.gt(Amount.ZERO)) {
-            receipts.add(Receipt.of(balance, payment.getDate()));
-            provisionRepository.save(
-                    Provision.of(folderId, balance, Payment.of(balance, payment.getDate(), payment.getTicket())));
-        }
-        return receipts;
-    }*/
 }

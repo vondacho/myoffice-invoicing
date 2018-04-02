@@ -9,7 +9,5 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Ticket {
     @NonNull
-    String number;
-    @NonNull
-    FolderId folderId;
+    String id;
 }

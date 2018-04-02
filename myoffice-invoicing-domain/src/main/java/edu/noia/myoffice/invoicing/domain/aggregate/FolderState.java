@@ -2,35 +2,36 @@ package edu.noia.myoffice.invoicing.domain.aggregate;
 
 import edu.noia.myoffice.common.domain.entity.EntityState;
 import edu.noia.myoffice.common.domain.vo.Amount;
-import edu.noia.myoffice.common.domain.vo.MutableAmount;
-import edu.noia.myoffice.invoicing.domain.vo.CustomerId;
+import edu.noia.myoffice.invoicing.domain.vo.Affiliate;
 import edu.noia.myoffice.invoicing.domain.vo.Ticket;
 
-import java.util.List;
+import java.util.Set;
 
 public interface FolderState extends EntityState {
 
-    MutableAmount getDebtAmount();
+    Amount getAskedAmount();
 
-    MutableAmount getProvisionedAmount();
+    Amount getDebtAmount();
 
-    MutableAmount getPayedAmount();
+    Amount getProvisionedAmount();
 
-    void ask(Amount amount);
+    Amount getPayedAmount();
 
-    void pay(Amount amount);
+    Set<Affiliate> getAffiliates();
 
-    void charge(Amount amount);
+    Set<Ticket> getTickets();
 
-    void provision(Amount amount);
+    FolderState ask(Amount amount);
 
-    void consume(Amount amount);
+    FolderState charge(Amount amount);
 
-    FolderState affiliate(CustomerId customerId);
+    FolderState pay(Amount amount);
+
+    FolderState provision(Amount amount);
+
+    FolderState consume(Amount amount);
 
     FolderState addTicket(Ticket ticket);
 
-    List<CustomerId> getDebtors();
-
-    List<Ticket> getTickets();
+    FolderState addAffiliate(Affiliate affiliate);
 }

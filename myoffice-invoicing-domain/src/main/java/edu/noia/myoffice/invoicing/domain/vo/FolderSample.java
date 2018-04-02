@@ -1,75 +1,45 @@
 package edu.noia.myoffice.invoicing.domain.vo;
 
 import edu.noia.myoffice.common.domain.vo.Amount;
-import edu.noia.myoffice.common.domain.vo.MutableAmount;
+import edu.noia.myoffice.invoicing.domain.aggregate.DefaultFolderState;
 import edu.noia.myoffice.invoicing.domain.aggregate.FolderState;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 
-import java.util.List;
-
-import static java.util.Collections.emptyList;
+import java.util.HashSet;
+import java.util.Set;
 
 @Accessors(chain = true)
 @Getter
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FolderSample implements FolderState {
+public class FolderSample implements DefaultFolderState {
 
-    MutableAmount debtAmount = new MutableAmount(Amount.ZERO);
-    MutableAmount provisionedAmount = new MutableAmount(Amount.ZERO);
-    MutableAmount payedAmount = new MutableAmount(Amount.ZERO);
-    MutableAmount askedAmount = new MutableAmount(Amount.ZERO);
+    @Setter(value = AccessLevel.PRIVATE)
+    Amount debtAmount = Amount.from(Amount.ZERO);
+    @Setter(value = AccessLevel.PRIVATE)
+    Amount provisionedAmount = Amount.from(Amount.ZERO);
+    @Setter(value = AccessLevel.PRIVATE)
+    Amount payedAmount = Amount.from(Amount.ZERO);
+    @Setter(value = AccessLevel.PRIVATE)
+    Amount askedAmount = Amount.from(Amount.ZERO);
+
+    @Setter(value = AccessLevel.PRIVATE)
+    Set<Affiliate> affiliates = new HashSet<>();
+    @Setter(value = AccessLevel.PRIVATE)
+    Set<Ticket> tickets = new HashSet<>();
 
     public static FolderSample from(FolderState state) {
-        return new FolderSample();
-    }
-
-    @Override
-    public void ask(Amount amount) {
-        askedAmount.plus(amount);
-    }
-
-    @Override
-    public void charge(Amount amount) {
-        debtAmount.plus(amount);
-    }
-
-    @Override
-    public void pay(Amount amount) {
-        payedAmount.plus(amount);
-    }
-
-    @Override
-    public void provision(Amount amount) {
-        provisionedAmount.plus(amount);
-    }
-
-    @Override
-    public void consume(Amount amount) {
-        provisionedAmount.minus(amount);
-    }
-
-    @Override
-    public FolderState affiliate(CustomerId customerId) {
-        return this;
-    }
-
-    @Override
-    public FolderState addTicket(Ticket ticket) {
-        return this;
-    }
-
-    @Override
-    public List<CustomerId> getDebtors() {
-        return emptyList();
-    }
-
-    @Override
-    public List<Ticket> getTickets() {
-        return emptyList();
+        return new FolderSample()
+                .setAskedAmount(Amount.from(state.getAskedAmount()))
+                .setDebtAmount(Amount.from(state.getDebtAmount()))
+                .setPayedAmount(Amount.from(state.getPayedAmount()))
+                .setProvisionedAmount(Amount.from(state.getProvisionedAmount()))
+                .setTickets(new HashSet<>(state.getTickets()))
+                .setAffiliates(new HashSet<>(state.getAffiliates()));
     }
 }

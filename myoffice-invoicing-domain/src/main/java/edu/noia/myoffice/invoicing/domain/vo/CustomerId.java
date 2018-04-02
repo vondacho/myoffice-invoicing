@@ -1,15 +1,16 @@
 package edu.noia.myoffice.invoicing.domain.vo;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import edu.noia.myoffice.common.domain.vo.Identity;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(of = "id", callSuper = false, doNotUseGetters = true)
+@RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public final class CustomerId {
-    UUID id;
+public final class CustomerId implements Identity {
+    @NonNull
+    final UUID id;
 }

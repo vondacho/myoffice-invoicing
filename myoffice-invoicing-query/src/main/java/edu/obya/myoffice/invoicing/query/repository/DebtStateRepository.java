@@ -1,17 +1,18 @@
 package edu.obya.myoffice.invoicing.query.repository;
 
-import edu.noia.myoffice.sale.domain.aggregate.CartState;
-import edu.noia.myoffice.sale.domain.vo.CartId;
-import edu.noia.myoffice.sale.domain.vo.FolderId;
+
+import edu.noia.myoffice.invoicing.domain.aggregate.DebtState;
+import edu.noia.myoffice.invoicing.domain.vo.DebtId;
+import edu.noia.myoffice.invoicing.domain.vo.FolderId;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface DebtStateRepository {
 
-    Optional<CartState> findById(CartId id);
+    Optional<DebtState> findById(DebtId id);
 
-    List<CartState> findByFolderId(FolderId folderId);
+    List<DebtState> findByFolderId(FolderId folderId);
 
-    CartState save(CartId id, CartState state);
+    DebtState save(DebtId id, DebtState state);
 }

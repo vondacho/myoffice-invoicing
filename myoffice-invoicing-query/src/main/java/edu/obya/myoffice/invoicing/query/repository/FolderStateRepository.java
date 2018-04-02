@@ -1,17 +1,13 @@
 package edu.obya.myoffice.invoicing.query.repository;
 
-import edu.noia.myoffice.sale.domain.aggregate.CartState;
-import edu.noia.myoffice.sale.domain.vo.CartId;
-import edu.noia.myoffice.sale.domain.vo.FolderId;
+import edu.noia.myoffice.invoicing.domain.aggregate.FolderState;
+import edu.noia.myoffice.invoicing.domain.vo.FolderId;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface FolderStateRepository {
 
-    Optional<CartState> findById(CartId id);
+    Optional<FolderState> findById(FolderId id);
 
-    List<CartState> findByFolderId(FolderId folderId);
-
-    CartState save(CartId id, CartState state);
+    FolderState save(FolderId id, FolderState state);
 }

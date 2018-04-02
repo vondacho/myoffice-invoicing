@@ -10,9 +10,12 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.axonframework.commandhandling.model.Aggregate;
+import org.axonframework.commandhandling.model.AggregateNotFoundException;
 import org.axonframework.commandhandling.model.Repository;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -23,11 +26,30 @@ public class AxonDebtRepository implements DebtRepository {
 
     @Override
     public Optional<Holder<Debt>> findOne(DebtId debtId) {
-        return Optional.empty();
+        try {
+            return Optional.of(new DebtHolder(repository.load(debtId.toString())));
+        } catch (AggregateNotFoundException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
     public Holder<Debt> save(DebtId id, DebtState state) {
-        return null;
+        try {
+            return new DebtHolder(repository.newInstance(() -> AxonDebt.create(state)));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    @RequiredArgsConstructor
+    private class DebtHolder implements Holder<Debt> {
+        @NonNull
+        Aggregate<AxonDebt> aggregate;
+
+        @Override
+        public void execute(Consumer<Debt> action) {
+            aggregate.execute(action::accept);
+        }
     }
 }

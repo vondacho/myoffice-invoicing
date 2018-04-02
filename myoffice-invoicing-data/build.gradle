@@ -1,8 +1,0 @@
-dependencies {
-    compile("edu.noia.myoffice:myoffice-invoicing-domain:${version}")
-    compile("edu.noia.myoffice:myoffice-common-data:${myofficeCommonVersion}")
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '2.0.0.M7'
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-rest', version: '2.0.0.M7'
-    compile 'org.hibernate:hibernate-java8:5.1.0.Final'
-    compile 'com.h2database:h2:1.4.196'
-}

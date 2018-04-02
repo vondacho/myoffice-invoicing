@@ -1,49 +1,64 @@
 package edu.obya.myoffice.invoicing.query.handler;
 
-import edu.noia.myoffice.sale.domain.event.cart.CartCreatedEventPayload;
-import edu.noia.myoffice.sale.domain.event.cart.CartInvoicedEventPayload;
-import edu.noia.myoffice.sale.domain.event.cart.CartOrderedEventPayload;
-import edu.noia.myoffice.sale.domain.event.item.ItemAddedToCartEventPayload;
-import edu.noia.myoffice.sale.domain.event.item.ItemRemovedFromCartEventPayload;
-import edu.noia.myoffice.sale.domain.vo.CartSample;
-import edu.noia.myoffice.sale.query.repository.CartStateRepository;
+import edu.noia.myoffice.invoicing.domain.event.folder.*;
+import edu.noia.myoffice.invoicing.domain.vo.Affiliate;
+import edu.noia.myoffice.invoicing.domain.vo.FolderSample;
+import edu.obya.myoffice.invoicing.query.repository.FolderStateRepository;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PROTECTED)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class FolderUpdater {
 
     @NonNull
-    CartStateRepository repository;
+    FolderStateRepository repository;
 
-    public void created(CartCreatedEventPayload event) {
-        repository.save(event.getCartId(), CartSample.from(event.getCartSpecification()));
+    public void created(FolderCreatedEventPayload event) {
+        repository.save(event.getFolderId(), new FolderSample());
     }
 
-    public void itemAdded(ItemAddedToCartEventPayload event) {
+    public void asked(ProvisionAskedEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.add(event.getCartItem()));
+                .findById(event.getFolderId())
+                .ifPresent(state -> state.ask(event.getAmount()));
     }
 
-    public void itemRemoved(ItemRemovedFromCartEventPayload event) {
+    public void charged(ChargeAccumulatedEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.remove(event.getCartItemId()));
+                .findById(event.getFolderId())
+                .ifPresent(state -> state.charge(event.getAmount()));
     }
 
-    public void ordered(CartOrderedEventPayload event) {
+    public void provisioned(ProvisionCreatedEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.setOrderId(event.getOrderId()));
+                .findById(event.getFolderId())
+                .ifPresent(state -> state.provision(event.getPayment().getAmount()));
     }
 
-    public void invoiced(CartInvoicedEventPayload event) {
+    public void consumed(ProvisionUsedEventPayload event) {
         repository
-                .findById(event.getCartId())
-                .ifPresent(cart -> cart.setInvoiceId(event.getInvoiceId()));
+                .findById(event.getFolderId())
+                .ifPresent(state -> state.consume(event.getAmount()));
+    }
+
+    public void payed(PaymentReceivedEventPayload event) {
+        repository
+                .findById(event.getFolderId())
+                .ifPresent(state -> state.pay(event.getPayment().getAmount()));
+    }
+
+    public void registered(TicketRegisteredEventPayload event) {
+        repository
+                .findById(event.getFolderId())
+                .ifPresent(state -> state.addTicket(event.getTicket()));
+    }
+
+    public void affiliated(FolderJoinedEventPayload event) {
+        repository
+                .findById(event.getFolderId())
+                .ifPresent(state -> state.addAffiliate(Affiliate.of(event.getCustomerId())));
     }
 }

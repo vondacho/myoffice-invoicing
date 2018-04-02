@@ -3,9 +3,9 @@ package edu.noia.myoffice.invoicing;
 import edu.noia.myoffice.invoicing.command.InvoicingCommandComponentConfig;
 import edu.noia.myoffice.invoicing.command.data.InvoicingCommandDataComponentConfig;
 import edu.noia.myoffice.invoicing.messaging.InvoicingMessagingComponentConfig;
-import edu.noia.myoffice.invoicing.query.InvoicingQueryComponentConfig;
 import edu.noia.myoffice.invoicing.query.data.InvoicingQueryDataComponentConfig;
 import edu.noia.myoffice.invoicing.rest.InvoicingRestComponentConfig;
+import edu.obya.myoffice.invoicing.query.InvoicingQueryComponentConfig;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
