@@ -18,7 +18,7 @@ public class InvoicingEventEndpoint {
     InvoicingEventBroker invoicingEventBroker;
 
     @GetMapping(produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
-    public Flux<InvoicingEvent> saleEvents() {
+    public Flux<InvoicingEvent> getEventFlux() {
         return Flux.create(sink -> InvoicingEventFluxSinkRegistrar.register(sink, invoicingEventBroker));
     }
 }

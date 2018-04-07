@@ -21,7 +21,9 @@ public class InvoicingRestComponentConfig {
     public Jackson2ObjectMapperBuilder jacksonBuilder() {
         return new Jackson2ObjectMapperBuilder()
                 .serializationInclusion(JsonInclude.Include.NON_EMPTY)
-                .modules(CommonSerializers.getModule(), InvoicingSerializers.getModule());
+                .modules(
+                        CommonSerializers.getModule(),
+                        InvoicingSerializers.getModule());
     }
 
     @Bean

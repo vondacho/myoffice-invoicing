@@ -22,18 +22,18 @@ public class SpringfoxConfiguration {
                 .groupName("myOffice API")
                 .apiInfo(apiInfo())
                 .select()
-                .paths(salePaths())
+                .paths(endpointPaths())
                 .build();
     }
 
-    private Predicate<String> salePaths() {
-        return regex("/api/sale.*");
+    private Predicate<String> endpointPaths() {
+        return regex("/api/invoicing.*");
     }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("myOffice Sale API")
-                .description("The Sale API is a part of the myOffice API and provides endpoints for Cart entity management and sale event stream consumption.")
+                .title("myOffice Invoicing API")
+                .description("The Invoicing API is a part of the myOffice API and provides endpoints for Folder and Debt entity management and invoicing event stream consumption.")
                 .license("Apache License Version 2.0")
                 .licenseUrl("https://github.com/springfox/springfox/blob/master/LICENSE")
                 .version("1.0")
