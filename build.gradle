@@ -7,7 +7,7 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5'
         classpath 'io.franzbecker:gradle-lombok:1.10'
     }
@@ -16,11 +16,12 @@ buildscript {
 allprojects {
     apply plugin: 'java'
     group 'edu.noia.myoffice'
-    version = '0.0.2'
+    version = '0.0.3'
     repositories {
         jcenter()
         mavenLocal()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        maven { url "http://repo.spring.io/milestone/" }
         maven {
             name 'mavenRemote'
             url myMavenRepoReadUrl
@@ -49,6 +50,7 @@ subprojects {
     ext {
         myofficeCommonVersion = '0.0.13'
         springBootAdminVersion = '2.0.0-SNAPSHOT'
+        springCloudVersion = 'Finchley.M9'
         springHalBrowserVersion = '3.0.3.RELEASE'
         springfoxVersion = '2.8.0'
         lombokVersion = '1.16.18'
@@ -61,12 +63,12 @@ subprojects {
     }
     dependencyManagement {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
         }
     }
     dependencies {
-        compile("org.projectlombok:lombok:${lombokVersion}")
-        testCompile("org.mockito:mockito-core:${mokitoVersion}")
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
+        testCompile "org.mockito:mockito-core:${mokitoVersion}"
         testCompile 'org.springframework.boot:spring-boot-starter-test'
     }
     publishing {
