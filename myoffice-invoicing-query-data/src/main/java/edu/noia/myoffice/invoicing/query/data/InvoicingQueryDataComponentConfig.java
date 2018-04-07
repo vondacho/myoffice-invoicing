@@ -1,5 +1,7 @@
 package edu.noia.myoffice.invoicing.query.data;
 
+import edu.noia.myoffice.common.data.jpa.hibernate.converter.AmountConverter;
+import edu.noia.myoffice.common.data.jpa.hibernate.converter.PercentageConverter;
 import edu.noia.myoffice.invoicing.domain.vo.DebtId;
 import edu.noia.myoffice.invoicing.domain.vo.FolderId;
 import edu.noia.myoffice.invoicing.query.data.adapter.DebtStateRepositoryAdapter;
@@ -30,7 +32,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 @EnableJpaRepositories(repositoryFactoryBeanClass = EnversRevisionRepositoryFactoryBean.class)
-@EntityScan
+@EntityScan(
+        basePackageClasses = {
+                JpaDebtState.class,
+                JpaFolderState.class,
+                AmountConverter.class,
+                PercentageConverter.class
+        }
+)
 @Configuration
 public class InvoicingQueryDataComponentConfig {
 

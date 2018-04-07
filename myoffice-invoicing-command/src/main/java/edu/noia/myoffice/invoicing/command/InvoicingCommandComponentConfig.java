@@ -3,6 +3,8 @@ package edu.noia.myoffice.invoicing.command;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.noia.myoffice.common.domain.event.EventPublisher;
+import edu.noia.myoffice.common.domain.vo.Quantity;
+import edu.noia.myoffice.common.mixin.QuantityMixin;
 import edu.noia.myoffice.common.serializer.CommonSerializers;
 import edu.noia.myoffice.invoicing.command.handler.axon.AxonInvoicingService;
 import edu.noia.myoffice.invoicing.domain.repository.DebtRepository;
@@ -14,6 +16,7 @@ import org.axonframework.serialization.json.JacksonSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @ComponentScan
 @Configuration
@@ -27,12 +30,14 @@ public class InvoicingCommandComponentConfig {
         return new AxonInvoicingService(defaultValues, folderRepository, debtRepository, eventPublisher);
     }
 
+    @Primary
     @Bean
     public Serializer serializer() {
         return new JacksonSerializer(
                 new ObjectMapper()
                         .registerModule(CommonSerializers.getModule())
                         .registerModule(InvoicingSerializers.getModule())
+                        .addMixIn(Quantity.class, QuantityMixin.class)
                         .setSerializationInclusion(JsonInclude.Include.NON_EMPTY));
     }
 }

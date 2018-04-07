@@ -43,22 +43,20 @@ public class JpaDebtState extends JpaBaseEntity implements DefaultDebtState {
     @Enumerated(value = EnumType.STRING)
     DebtStatus status;
 
-    @Type(type = "edu.noia.myoffice.invoicing.data.jpa.hibernate.type.PaymentType")
+    @Type(type = "edu.noia.myoffice.invoicing.query.data.jpa.hibernate.type.PaymentType")
     @Columns(columns = {
-            @Column(name = "date"),
             @Column(name = "amount"),
-            @Column(name = "amount_unit"),
+            @Column(name = "date"),
             @Column(name = "ticket")
     })
     @ElementCollection
     @CollectionTable(name = "debt_payment", joinColumns = @JoinColumn(name = "fk_debt"))
     List<Payment> payments = new ArrayList<>();
 
-    @Type(type = "edu.noia.myoffice.invoicing.data.jpa.hibernate.type.RecallType")
+    @Type(type = "edu.noia.myoffice.invoicing.query.data.jpa.hibernate.type.RecallType")
     @Columns(columns = {
-            @Column(name = "date"),
             @Column(name = "amount"),
-            @Column(name = "amount_unit")
+            @Column(name = "date"),
     })
     @ElementCollection
     @CollectionTable(name = "debt_recall", joinColumns = @JoinColumn(name = "fk_debt"))

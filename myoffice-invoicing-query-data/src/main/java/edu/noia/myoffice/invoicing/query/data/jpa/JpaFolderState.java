@@ -35,7 +35,7 @@ public class JpaFolderState extends JpaBaseEntity implements DefaultFolderState 
     Amount payedAmount;
     Amount askedAmount;
 
-    @Type(type = "edu.noia.myoffice.invoicing.data.jpa.hibernate.type.AffiliateType")
+    @Type(type = "edu.noia.myoffice.invoicing.query.data.jpa.hibernate.type.AffiliateType")
     @Columns(columns = {
             @Column(name = "customerId"),
             @Column(name = "primaryDebtor")

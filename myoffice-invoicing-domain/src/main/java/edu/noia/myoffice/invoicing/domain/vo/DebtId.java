@@ -6,9 +6,11 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
-@Getter
+@ToString
 @EqualsAndHashCode(of = "id", callSuper = false, doNotUseGetters = true)
+@Getter
 @RequiredArgsConstructor(staticName = "of")
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public final class DebtId implements Identity {
     @NonNull
