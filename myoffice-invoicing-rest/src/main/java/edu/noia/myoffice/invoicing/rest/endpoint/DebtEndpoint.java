@@ -29,7 +29,7 @@ public class DebtEndpoint {
         commandPublisher.accept(InvoiceCartCommand.of(
                 invoiceSpecification.getCartId(),
                 invoiceSpecification.getFolderId(),
-                invoiceSpecification.getCartAmount()));
+                invoiceSpecification.getAmount()));
         return noContent().build();
     }
 }

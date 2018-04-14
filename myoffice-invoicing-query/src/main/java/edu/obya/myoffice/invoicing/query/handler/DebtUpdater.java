@@ -1,5 +1,6 @@
 package edu.obya.myoffice.invoicing.query.handler;
 
+import edu.noia.myoffice.invoicing.domain.event.DebtEventHandler;
 import edu.noia.myoffice.invoicing.domain.event.debt.*;
 import edu.noia.myoffice.invoicing.domain.vo.DebtSample;
 import edu.obya.myoffice.invoicing.query.repository.DebtStateRepository;
@@ -12,7 +13,7 @@ import static edu.noia.myoffice.invoicing.domain.vo.DebtStatus.CLOSED;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DebtUpdater {
+public class DebtUpdater implements DebtEventHandler {
 
     @NonNull
     DebtStateRepository repository;

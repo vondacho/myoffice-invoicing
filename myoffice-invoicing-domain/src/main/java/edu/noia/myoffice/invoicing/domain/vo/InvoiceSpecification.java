@@ -4,17 +4,18 @@ import edu.noia.myoffice.common.domain.vo.Amount;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+
+import javax.validation.constraints.NotNull;
 
 @Getter
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InvoiceSpecification {
-    @NonNull
+    @NotNull
     FolderId folderId;
-    @NonNull
+    @NotNull
     CartId cartId;
-    @NonNull
-    Amount cartAmount;
+    @NotNull
+    Amount amount;
 }

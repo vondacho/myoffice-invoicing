@@ -1,5 +1,6 @@
 package edu.obya.myoffice.invoicing.query.handler;
 
+import edu.noia.myoffice.invoicing.domain.event.FolderEventHandler;
 import edu.noia.myoffice.invoicing.domain.event.folder.*;
 import edu.noia.myoffice.invoicing.domain.vo.Affiliate;
 import edu.noia.myoffice.invoicing.domain.vo.FolderSample;
@@ -11,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class FolderUpdater {
+public class FolderUpdater implements FolderEventHandler {
 
     @NonNull
     FolderStateRepository repository;

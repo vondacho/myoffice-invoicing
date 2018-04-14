@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class InvoicingMessagingComponentConfig {
+public class InvoicingMessagingComponentConfiguration {
 
     @Bean
     public EventPublisher eventPublisher(EventBus eventBus) {

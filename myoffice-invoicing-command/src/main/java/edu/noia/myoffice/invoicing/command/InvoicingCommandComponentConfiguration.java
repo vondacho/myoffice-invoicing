@@ -6,7 +6,9 @@ import edu.noia.myoffice.common.domain.event.EventPublisher;
 import edu.noia.myoffice.common.domain.vo.Quantity;
 import edu.noia.myoffice.common.mixin.QuantityMixin;
 import edu.noia.myoffice.common.serializer.CommonSerializers;
-import edu.noia.myoffice.invoicing.command.handler.axon.AxonInvoicingService;
+import edu.noia.myoffice.invoicing.command.command.axon.AxonInvoicingCommandHandler;
+import edu.noia.myoffice.invoicing.command.service.axon.AxonInvoicingService;
+import edu.noia.myoffice.invoicing.domain.command.InvoicingCommandHandler;
 import edu.noia.myoffice.invoicing.domain.repository.DebtRepository;
 import edu.noia.myoffice.invoicing.domain.repository.FolderRepository;
 import edu.noia.myoffice.invoicing.domain.vo.DefaultValues;
@@ -20,14 +22,15 @@ import org.springframework.context.annotation.Primary;
 
 @ComponentScan
 @Configuration
-public class InvoicingCommandComponentConfig {
+public class InvoicingCommandComponentConfiguration {
 
     @Bean
-    public AxonInvoicingService invoicingCommandHandler(DefaultValues defaultValues,
-                                                        FolderRepository folderRepository,
-                                                        DebtRepository debtRepository,
-                                                        EventPublisher eventPublisher) {
-        return new AxonInvoicingService(defaultValues, folderRepository, debtRepository, eventPublisher);
+    public InvoicingCommandHandler invoicingService(DefaultValues defaultValues,
+                                                    FolderRepository folderRepository,
+                                                    DebtRepository debtRepository,
+                                                    EventPublisher eventPublisher) {
+        return new AxonInvoicingCommandHandler(
+                new AxonInvoicingService(defaultValues, folderRepository, debtRepository, eventPublisher));
     }
 
     @Primary

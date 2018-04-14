@@ -34,9 +34,7 @@ public class AxonFolder extends Folder {
     }
 
     public static AxonFolder create(FolderId folderId) {
-        AxonFolder folder = new AxonFolder(folderId);
-        AggregateLifecycle.apply(FolderCreatedEventPayload.of(folder.getId()));
-        return folder;
+        return (AxonFolder) create(folderId, AggregateLifecycle::apply, AxonFolder::new);
     }
 
     @Override

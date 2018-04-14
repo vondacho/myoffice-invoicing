@@ -1,5 +1,5 @@
 dependencies {
-    compile("edu.noia.myoffice:myoffice-common-domain:${myofficeCommonVersion}")
-    compile 'org.springframework.boot:spring-boot-starter'
-    compile("org.axonframework:axon-spring-boot-starter:${axonVersion}")
+    compile "edu.noia.myoffice:myoffice-common-domain:${myofficeCommonVersion}"
+    compile "org.springframework.boot:spring-boot-starter"
+    compile "org.axonframework:axon-spring-boot-starter:${axonVersion}"
 }

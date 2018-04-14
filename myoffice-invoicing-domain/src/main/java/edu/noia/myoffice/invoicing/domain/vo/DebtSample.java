@@ -49,7 +49,7 @@ public class DebtSample implements DefaultDebtState {
     public static DebtSample of(@NonNull FolderId folderId, @NonNull Amount amount) {
         return new DebtSample(folderId)
                 .setAmount(amount)
-                .setPayedAmount(Amount.from(Amount.ZERO))
+                .setPayedAmount(Amount.ZERO)
                 .setPayments(new ArrayList<>())
                 .setRecalls(new ArrayList<>());
     }
@@ -58,7 +58,7 @@ public class DebtSample implements DefaultDebtState {
         return new DebtSample(folderId)
                 .setCartId(cartId)
                 .setCartAmount(cartAmount)
-                .setPayedAmount(Amount.from(Amount.ZERO))
+                .setPayedAmount(Amount.ZERO)
                 .setPayments(new ArrayList<>())
                 .setRecalls(new ArrayList<>());
     }
@@ -72,7 +72,7 @@ public class DebtSample implements DefaultDebtState {
                 .setDelayDate(state.getDelayDate())
                 .setDelayDayCount(state.getDelayDayCount())
                 .setNotes(state.getNotes())
-                .setAmount(Amount.from(state.getAmount()))
+                .setAmount(state.getAmount() != null ? Amount.from(state.getAmount()) : Amount.ZERO)
                 .setStatus(state.getStatus())
                 .setPayedAmount(Amount.from(state.getPayedAmount()))
                 .setPayments(new ArrayList<>(state.getPayments()))

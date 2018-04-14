@@ -8,7 +8,6 @@ import edu.noia.myoffice.invoicing.domain.aggregate.DebtState;
 import edu.noia.myoffice.invoicing.domain.event.debt.*;
 import edu.noia.myoffice.invoicing.domain.repository.DebtRepository;
 import edu.noia.myoffice.invoicing.domain.vo.DebtId;
-import edu.noia.myoffice.invoicing.domain.vo.DebtSample;
 import edu.noia.myoffice.invoicing.domain.vo.Payment;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -22,8 +21,6 @@ import org.axonframework.spring.stereotype.Aggregate;
 
 import java.time.Instant;
 import java.util.function.Consumer;
-
-import static edu.noia.myoffice.invoicing.domain.vo.DebtStatus.CREATED;
 
 @EqualsAndHashCode(callSuper = true)
 @Aggregate
@@ -39,14 +36,7 @@ public class AxonDebt extends Debt {
     }
 
     public static AxonDebt create(DebtState state) {
-        DebtSample sample = DebtSample.from(validateBean(state)).setStatus(CREATED);
-        AxonDebt debt = new AxonDebt(state);
-        if (state.getCartId() != null) {
-            AggregateLifecycle.apply(InvoiceCreatedEventPayload.of(debt.getId(), sample));
-        } else {
-            AggregateLifecycle.apply(RequestCreatedEventPayload.of(debt.getId(), sample));
-        }
-        return debt;
+        return (AxonDebt) create(state, AggregateLifecycle::apply, AxonDebt::new);
     }
 
     @Override

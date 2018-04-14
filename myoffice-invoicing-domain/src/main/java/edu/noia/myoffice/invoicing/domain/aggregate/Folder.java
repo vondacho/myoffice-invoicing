@@ -4,6 +4,7 @@ import edu.noia.myoffice.common.domain.entity.BaseEntity;
 import edu.noia.myoffice.common.domain.event.EventPayload;
 import edu.noia.myoffice.common.domain.vo.Amount;
 import edu.noia.myoffice.common.util.holder.Holder;
+import edu.noia.myoffice.common.util.validation.BeanValidator;
 import edu.noia.myoffice.invoicing.domain.event.folder.*;
 import edu.noia.myoffice.invoicing.domain.repository.FolderRepository;
 import edu.noia.myoffice.invoicing.domain.vo.*;
@@ -14,9 +15,9 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static edu.noia.myoffice.common.util.validation.Rule.condition;
-import static edu.noia.myoffice.invoicing.domain.aggregate.Debt.validateBean;
 
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -27,10 +28,18 @@ public class Folder extends BaseEntity<Folder, FolderId, FolderSample> {
         super(folderId, new FolderSample());
     }
 
-    public static Folder create(FolderId folderId, Consumer<EventPayload> eventPublisher) {
-        Folder folder = new Folder(folderId);
+    private static <T> T validateBean(T state) {
+        return BeanValidator.validate(state);
+    }
+
+    protected static Folder create(FolderId folderId, Consumer<EventPayload> eventPublisher, Function<FolderId, Folder> factory) {
+        Folder folder = factory.apply(folderId);
         eventPublisher.accept(FolderCreatedEventPayload.of(folder.getId()));
         return folder;
+    }
+
+    public static Folder create(FolderId folderId, Consumer<EventPayload> eventPublisher) {
+        return create(folderId, eventPublisher, Folder::new);
     }
 
     public void ask(Amount amount, Consumer<EventPayload> eventPublisher) {

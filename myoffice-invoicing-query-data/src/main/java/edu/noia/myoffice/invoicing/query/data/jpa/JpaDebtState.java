@@ -50,7 +50,7 @@ public class JpaDebtState extends JpaBaseEntity implements DefaultDebtState {
             @Column(name = "ticket")
     })
     @ElementCollection
-    @CollectionTable(name = "debt_payment", joinColumns = @JoinColumn(name = "fk_debt"))
+    @CollectionTable(name = "t_debt_payment", joinColumns = @JoinColumn(name = "fk_debt"))
     List<Payment> payments = new ArrayList<>();
 
     @Type(type = "edu.noia.myoffice.invoicing.query.data.jpa.hibernate.type.RecallType")
@@ -59,7 +59,7 @@ public class JpaDebtState extends JpaBaseEntity implements DefaultDebtState {
             @Column(name = "date"),
     })
     @ElementCollection
-    @CollectionTable(name = "debt_recall", joinColumns = @JoinColumn(name = "fk_debt"))
+    @CollectionTable(name = "t_debt_recall", joinColumns = @JoinColumn(name = "fk_debt"))
     List<Recall> recalls = new ArrayList<>();
 
     public static JpaDebtState of(DebtId debtId, DebtState state) {

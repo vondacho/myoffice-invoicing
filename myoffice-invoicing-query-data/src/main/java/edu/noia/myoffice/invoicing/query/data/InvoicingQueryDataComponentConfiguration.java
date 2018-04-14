@@ -41,7 +41,7 @@ import java.util.UUID;
         }
 )
 @Configuration
-public class InvoicingQueryDataComponentConfig {
+public class InvoicingQueryDataComponentConfiguration {
 
     @Bean
     public FolderStateRepository cartStateRepository(JpaFolderStateRepository jpaFolderStateRepository) {

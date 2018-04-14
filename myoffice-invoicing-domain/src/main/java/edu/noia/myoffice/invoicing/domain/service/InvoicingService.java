@@ -8,6 +8,7 @@ import edu.noia.myoffice.common.util.holder.Holder;
 import edu.noia.myoffice.invoicing.domain.aggregate.Debt;
 import edu.noia.myoffice.invoicing.domain.aggregate.DebtState;
 import edu.noia.myoffice.invoicing.domain.aggregate.Folder;
+import edu.noia.myoffice.invoicing.domain.command.InvoicingCommandHandler;
 import edu.noia.myoffice.invoicing.domain.command.debt.PayDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.debt.RecallDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.folder.AskCommand;
@@ -29,7 +30,7 @@ import static java.time.LocalDate.now;
 
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class InvoicingService {
+public class InvoicingService implements InvoicingCommandHandler {
 
     @NonNull
     DefaultValues defaultValues;
@@ -109,11 +110,11 @@ public class InvoicingService {
         applyOn(command.getFolderId(), folder -> folder.register(command.getTicket(), eventPublisher::publish));
     }
 
-    public void applyOn(FolderId folderId, Consumer<Folder> action) {
+    private void applyOn(FolderId folderId, Consumer<Folder> action) {
         find(folderId).execute(action);
     }
 
-    public void applyOn(DebtId debtId, Consumer<Debt> action) {
+    private void applyOn(DebtId debtId, Consumer<Debt> action) {
         find(debtId).execute(action);
     }
 

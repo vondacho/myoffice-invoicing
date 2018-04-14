@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 @ComponentScan(basePackageClasses = {
-        InvoicingRestComponentConfig.class,
+        InvoicingRestComponentConfiguration.class,
         EndpointExceptionHandler.class
 })
 @Configuration
-public class InvoicingRestComponentConfig {
+public class InvoicingRestComponentConfiguration {
 
     @Bean
     public Jackson2ObjectMapperBuilder jacksonBuilder() {

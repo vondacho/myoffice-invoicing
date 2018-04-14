@@ -19,6 +19,7 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static edu.noia.myoffice.common.util.validation.Rule.condition;
 import static edu.noia.myoffice.invoicing.domain.vo.DebtStatus.*;
@@ -32,19 +33,31 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
         super(DebtId.random(), state instanceof DebtSample ? (DebtSample) state : DebtSample.from(state));
     }
 
-    protected static <T> T validateBean(T state) {
+    private static <T> T validateBean(T state) {
         return BeanValidator.validate(state);
     }
 
-    public static Debt create(DebtState state, Consumer<EventPayload> eventPublisher) {
-        DebtSample sample = DebtSample.from(validateBean(state)).setStatus(CREATED);
-        Debt debt = new Debt(sample);
+    protected static Debt create(DebtState state, Consumer<EventPayload> eventPublisher, Function<DebtState, Debt> factory) {
+        DebtSample sample = DebtSample.from(validateBean(state))
+                .setStatus(CREATED)
+                .setAmount(computeTotal(state));
+
+        Debt debt = factory.apply(sample);
+
         if (state.getCartId() != null) {
             eventPublisher.accept(InvoiceCreatedEventPayload.of(debt.getId(), sample));
         } else {
             eventPublisher.accept(RequestCreatedEventPayload.of(debt.getId(), sample));
         }
         return debt;
+    }
+
+    public static Debt create(DebtState state, Consumer<EventPayload> eventPublisher) {
+        return create(state, eventPublisher, Debt::new);
+    }
+
+    private static Amount computeTotal(DebtState state) {
+        return state.getDiscountRate().iapply(state.getAmount().iplus(state.getTaxRate().iapply(state.getAmount())));
     }
 
     @Override
@@ -58,7 +71,7 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
     }
 
     public Amount getTotal() {
-        return state.getDiscountRate().iapply(state.getAmount().iplus(state.getTaxRate().iapply(state.getAmount())));
+        return computeTotal(state);
     }
 
     public Amount getDebt() {

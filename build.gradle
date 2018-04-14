@@ -16,7 +16,7 @@ buildscript {
 allprojects {
     apply plugin: 'java'
     group 'edu.noia.myoffice'
-    version = '0.0.4'
+    version = '0.0.6'
     repositories {
         jcenter()
         mavenLocal()
@@ -48,7 +48,7 @@ subprojects {
     apply plugin: 'io.franzbecker.gradle-lombok'
     sourceCompatibility = 1.8
     ext {
-        myofficeCommonVersion = '0.0.13'
+        myofficeCommonVersion = '0.0.14'
         springBootAdminVersion = '2.0.0-SNAPSHOT'
         springCloudVersion = 'Finchley.M9'
         springHalBrowserVersion = '3.0.3.RELEASE'

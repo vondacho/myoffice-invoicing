@@ -41,11 +41,11 @@ public class JpaFolderState extends JpaBaseEntity implements DefaultFolderState 
             @Column(name = "primaryDebtor")
     })
     @ElementCollection
-    @CollectionTable(name = "folder_affiliate", joinColumns = @JoinColumn(name = "fk_folder"))
+    @CollectionTable(name = "t_folder_affiliate", joinColumns = @JoinColumn(name = "fk_folder"))
     Set<Affiliate> affiliates = new HashSet<>();
 
     @ElementCollection
-    @CollectionTable(name = "folder_ticket", joinColumns = @JoinColumn(name = "fk_folder"))
+    @CollectionTable(name = "t_folder_ticket", joinColumns = @JoinColumn(name = "fk_folder"))
     Set<Ticket> tickets = new HashSet<>();
 
     public static JpaFolderState of(FolderId folderId, FolderState state) {
