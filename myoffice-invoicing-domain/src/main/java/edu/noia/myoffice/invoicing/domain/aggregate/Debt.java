@@ -56,8 +56,17 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
         return create(state, eventPublisher, Debt::new);
     }
 
+    //FIXME no to so robust
     private static Amount computeTotal(DebtState state) {
-        return state.getDiscountRate().iapply(state.getAmount().iplus(state.getTaxRate().iapply(state.getAmount())));
+        return state.getCartAmount() != null ?
+                state.getCartAmount().iplus(
+                        state.getDiscountRate().iapply(
+                                state.getCartAmount().iplus(
+                                        state.getTaxRate().iapply(state.getCartAmount())))) : state.getAmount();
+    }
+
+    public DebtType getType() {
+        return state.getCartAmount() != null ? DebtType.INVOICE : DebtType.REQUEST;
     }
 
     @Override
@@ -78,10 +87,11 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
         return getTotal().iminus(state.getPayedAmount());
     }
 
-    public void validate(DebtState modifier, Consumer<EventPayload> eventPublisher) {
+    public Debt validate(DebtState modifier, Consumer<EventPayload> eventPublisher) {
         condition(() -> CREATED == state.getStatus(), String.format("Debt %s has been already validated", getId()));
         validate(modifier);
         eventPublisher.accept(DebtValidatedEventPayload.of(getId(), DebtSample.from(modifier)));
+        return this;
     }
 
     public Amount pay(Payment payment, Consumer<EventPayload> eventPublisher) {
@@ -97,9 +107,10 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
         }
     }
 
-    public void recall(Consumer<EventPayload> eventPublisher) {
+    public Debt recall(Consumer<EventPayload> eventPublisher) {
         condition(() -> VALIDATED == state.getStatus(), String.format("Debt %s is not validated or already closed", getId()));
         eventPublisher.accept(RecallEmittedEventPayload.of(getId(), Recall.of(getDebt(), LocalDate.now())));
+        return this;
     }
 
     public Holder<Debt> save(DebtRepository repository) {
@@ -131,5 +142,9 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
     protected void closed(DebtClosedEventPayload event, Instant timestamp) {
         state.setStatus(CLOSED);
         andEvent(event, timestamp);
+    }
+
+    public enum DebtType {
+        INVOICE, REQUEST
     }
 }

@@ -18,7 +18,7 @@ import javax.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@Table(name = "folder_state")
+@Table(name = "folder")
 @Audited
 @Entity
 @EqualsAndHashCode(of = "id", callSuper = false)

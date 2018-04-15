@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Table(name = "debt_state")
+@Table(name = "debt")
 @Audited
 @Entity
 @EqualsAndHashCode(of = "id", callSuper = false)
