@@ -16,15 +16,16 @@ public interface DebtState extends EntityState {
     @NotNull
     FolderId getFolderId();
 
-    @NotNull
     CartId getCartId();
-
-    @NotNull
     Amount getCartAmount();
 
-    Percentage getTaxRate();
+    default Percentage getTaxRate() {
+        return Percentage.of(0);
+    }
 
-    Percentage getDiscountRate();
+    default Percentage getDiscountRate() {
+        return Percentage.of(0);
+    }
 
     Integer getDelayDayCount();
 
@@ -53,4 +54,12 @@ public interface DebtState extends EntityState {
     DebtState pay(Payment payment);
 
     DebtState addRecall(Recall recall);
+
+    default DebtState modify(DebtState modifier) {
+        return this.setStatus(modifier.getStatus());
+    }
+
+    default DebtState patch(DebtState modifier) {
+        return this.setStatus(modifier.getStatus() != null ? modifier.getStatus() : getStatus());
+    }
 }

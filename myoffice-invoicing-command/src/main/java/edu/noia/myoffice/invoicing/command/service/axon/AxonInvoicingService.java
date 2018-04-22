@@ -20,7 +20,7 @@ public class AxonInvoicingService extends InvoicingService {
             FolderRepository folderRepository,
             DebtRepository debtRepository,
             EventPublisher eventPublisher) {
-        
+
         super(defaultValues, folderRepository, debtRepository, eventPublisher);
     }
 

@@ -10,13 +10,9 @@ import edu.noia.myoffice.invoicing.domain.aggregate.Debt;
 import edu.noia.myoffice.invoicing.domain.aggregate.DebtState;
 import edu.noia.myoffice.invoicing.domain.aggregate.Folder;
 import edu.noia.myoffice.invoicing.domain.command.InvoicingCommandHandler;
-import edu.noia.myoffice.invoicing.domain.command.debt.PayDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.debt.RecallDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.debt.ValidateDebtCommand;
-import edu.noia.myoffice.invoicing.domain.command.folder.AskCommand;
-import edu.noia.myoffice.invoicing.domain.command.folder.CreateFolderCommand;
-import edu.noia.myoffice.invoicing.domain.command.folder.InvoiceCartCommand;
-import edu.noia.myoffice.invoicing.domain.command.folder.RegisterTicketCommand;
+import edu.noia.myoffice.invoicing.domain.command.folder.*;
 import edu.noia.myoffice.invoicing.domain.repository.DebtRepository;
 import edu.noia.myoffice.invoicing.domain.repository.FolderRepository;
 import edu.noia.myoffice.invoicing.domain.vo.*;
@@ -77,8 +73,11 @@ public class InvoicingService implements InvoicingCommandHandler {
     @Override
     public void validate(ValidateDebtCommand command) {
         applyOn(command.getDebtId(), debt -> {
-            debt.validate(command.getDebtSample(), eventPublisher::publish);
-            debt.save(debtRepository);
+            if (command.getDebtSample() != null) {
+                debt.validate(command.getDebtSample(), eventPublisher::publish);
+            } else {
+                debt.validate(eventPublisher::publish);
+            }
             applyOn(debt.getState().getFolderId(), folder -> {
                 if (Debt.DebtType.INVOICE == debt.getType()) {
                     folder.charge(debt.getTotal(), eventPublisher::publish);

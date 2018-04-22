@@ -1,7 +1,6 @@
-package edu.noia.myoffice.invoicing.domain.command.folder;
+package edu.noia.myoffice.invoicing.domain.command.debt;
 
-import edu.noia.myoffice.common.domain.command.Command;
-import edu.noia.myoffice.invoicing.domain.vo.FolderId;
+import edu.noia.myoffice.invoicing.domain.vo.DebtId;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -11,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CreateFolderCommand implements FolderCommand {
+public class CancelDebtCommand implements DebtCommand {
     @NonNull
-    FolderId folderId;
+    DebtId debtId;
 }

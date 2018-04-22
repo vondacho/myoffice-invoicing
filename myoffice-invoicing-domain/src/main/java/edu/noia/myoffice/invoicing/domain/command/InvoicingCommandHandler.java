@@ -1,6 +1,6 @@
 package edu.noia.myoffice.invoicing.domain.command;
 
-import edu.noia.myoffice.invoicing.domain.command.debt.PayDebtCommand;
+import edu.noia.myoffice.invoicing.domain.command.folder.PayDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.debt.RecallDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.debt.ValidateDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.folder.AskCommand;

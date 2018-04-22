@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
-@ToString
 @EqualsAndHashCode(of = "id", callSuper = false, doNotUseGetters = true)
 @Getter
 @RequiredArgsConstructor(staticName = "of")
@@ -18,5 +17,9 @@ public final class FolderId implements Identity {
 
     public static FolderId random() {
         return new FolderId(UUID.randomUUID());
+    }
+
+    public String toString() {
+        return id.toString();
     }
 }

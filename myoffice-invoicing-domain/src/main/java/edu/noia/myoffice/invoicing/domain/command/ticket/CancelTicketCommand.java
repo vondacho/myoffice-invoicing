@@ -1,7 +1,5 @@
-package edu.noia.myoffice.invoicing.domain.command.folder;
+package edu.noia.myoffice.invoicing.domain.command.ticket;
 
-import edu.noia.myoffice.invoicing.domain.command.ticket.TicketCommand;
-import edu.noia.myoffice.invoicing.domain.vo.FolderId;
 import edu.noia.myoffice.invoicing.domain.vo.Ticket;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,9 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RegisterTicketCommand implements FolderCommand, TicketCommand {
-    @NonNull
-    FolderId folderId;
+public class CancelTicketCommand implements TicketCommand {
     @NonNull
     Ticket ticket;
 }

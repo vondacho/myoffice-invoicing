@@ -34,10 +34,10 @@ public class PaymentType extends AbstractUserType {
 
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws SQLException {
-        final Amount amount = Amount.ofCentimes(rs.getLong(names[0]));
-        final LocalDate date = rs.getDate(names[1]).toLocalDate();
+        final Optional<Amount> amount = Optional.ofNullable(rs.getLong(names[0])).map(Amount::ofCentimes);
+        final Optional<LocalDate> date = Optional.ofNullable(rs.getDate(names[1])).map(Date::toLocalDate);
         final Optional<String> ticketId = Optional.ofNullable(rs.getString(names[2]));
-        return ticketId.map(id -> Payment.of(amount, date, Ticket.of(id))).orElse(Payment.of(amount, date));
+        return amount.flatMap(a -> date.map(d -> ticketId.map(t -> Payment.of(a, d, Ticket.of(t))).orElse(Payment.of(a, d)))).orElse(null);
     }
 
     @Override

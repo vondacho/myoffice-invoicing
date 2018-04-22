@@ -37,41 +37,43 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
         return BeanValidator.validate(state);
     }
 
-    protected static Debt create(DebtState state, Consumer<EventPayload> eventPublisher, Function<DebtState, Debt> factory) {
-        DebtSample sample = DebtSample.from(validateBean(state))
-                .setStatus(CREATED)
-                .setAmount(computeTotal(state));
-
-        Debt debt = factory.apply(sample);
-
-        if (state.getCartId() != null) {
-            eventPublisher.accept(InvoiceCreatedEventPayload.of(debt.getId(), sample));
-        } else {
-            eventPublisher.accept(RequestCreatedEventPayload.of(debt.getId(), sample));
-        }
-        return debt;
-    }
-
     public static Debt create(DebtState state, Consumer<EventPayload> eventPublisher) {
         return create(state, eventPublisher, Debt::new);
     }
 
-    //FIXME no to so robust
-    private static Amount computeTotal(DebtState state) {
-        return state.getCartAmount() != null ?
-                state.getCartAmount().iplus(
+    protected static Debt create(DebtState state, Consumer<EventPayload> eventPublisher, Function<DebtState, Debt> factory) {
+        return state.getCartId() != null ?
+                invoice(state, eventPublisher, factory) :
+                request(state, eventPublisher, factory);
+    }
+
+    private static Debt invoice(DebtState state, Consumer<EventPayload> eventPublisher, Function<DebtState, Debt> factory) {
+        DebtSample sample = DebtSample.from(validateBean(state))
+                .setStatus(CREATED)
+                .setAmount(state.getCartAmount().iplus(
                         state.getDiscountRate().iapply(
                                 state.getCartAmount().iplus(
-                                        state.getTaxRate().iapply(state.getCartAmount())))) : state.getAmount();
+                                        state.getTaxRate().iapply(state.getCartAmount())))));
+
+        Debt debt = factory.apply(sample);
+        eventPublisher.accept(InvoiceCreatedEventPayload.of(debt.getId(), sample));
+        return debt;
+    }
+
+    private static Debt request(DebtState state, Consumer<EventPayload> eventPublisher, Function<DebtState, Debt> factory) {
+        DebtSample sample = DebtSample.from(validateBean(state)).setStatus(CREATED);
+        Debt debt = factory.apply(sample);
+        eventPublisher.accept(RequestCreatedEventPayload.of(debt.getId(), sample));
+        return debt;
     }
 
     public DebtType getType() {
-        return state.getCartAmount() != null ? DebtType.INVOICE : DebtType.REQUEST;
+        return state.getCartId() != null ? DebtType.INVOICE : DebtType.REQUEST;
     }
 
     @Override
-    public void validate(DebtState state) {
-        validateBean(state);
+    public DebtState validate(DebtState state) {
+        return validateBean(state);
     }
 
     @Override
@@ -80,17 +82,25 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
     }
 
     public Amount getTotal() {
-        return computeTotal(state);
+        return state.getAmount();
     }
 
     public Amount getDebt() {
         return getTotal().iminus(state.getPayedAmount());
     }
 
+    public Debt validate(Consumer<EventPayload> eventPublisher) {
+        condition(() -> CREATED == state.getStatus(), String.format("Debt %s has been already validated", getId()));
+        state.setStatus(VALIDATED);
+        eventPublisher.accept(DebtValidatedEventPayload.of(getId(), DebtSample.from(state)));
+        return this;
+    }
+
     public Debt validate(DebtState modifier, Consumer<EventPayload> eventPublisher) {
         condition(() -> CREATED == state.getStatus(), String.format("Debt %s has been already validated", getId()));
-        validate(modifier);
-        eventPublisher.accept(DebtValidatedEventPayload.of(getId(), DebtSample.from(modifier)));
+        this.patch(modifier);
+        state.setStatus(VALIDATED);
+        eventPublisher.accept(DebtValidatedEventPayload.of(getId(), DebtSample.from(state)));
         return this;
     }
 
@@ -125,7 +135,6 @@ public class Debt extends BaseEntity<Debt, DebtId, DebtState> {
 
     protected void validated(DebtValidatedEventPayload event, Instant timestamp) {
         state.modify(event.getDebtState());
-        state.setStatus(VALIDATED);
         andEvent(event, timestamp);
     }
 

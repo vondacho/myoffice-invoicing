@@ -6,16 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import javax.validation.constraints.NotNull;
-
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class InvoiceSpecification {
-    @NotNull
-    FolderId folderId;
-    @NotNull
-    CartId cartId;
-    @NotNull
+public class Request {
+
     Amount amount;
 }

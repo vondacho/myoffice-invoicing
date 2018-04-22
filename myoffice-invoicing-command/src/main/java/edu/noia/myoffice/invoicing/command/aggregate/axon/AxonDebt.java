@@ -45,8 +45,13 @@ public class AxonDebt extends Debt {
     }
 
     @Override
-    public void validate(DebtState modifier, Consumer<EventPayload> eventPublisher) {
-        super.validate(modifier, AggregateLifecycle::apply);
+    public Debt validate(Consumer<EventPayload> eventPublisher) {
+        return super.validate(AggregateLifecycle::apply);
+    }
+
+    @Override
+    public Debt validate(DebtState modifier, Consumer<EventPayload> eventPublisher) {
+        return super.validate(modifier, AggregateLifecycle::apply);
     }
 
     @Override

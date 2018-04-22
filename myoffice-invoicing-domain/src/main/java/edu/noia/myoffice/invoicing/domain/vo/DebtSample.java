@@ -14,12 +14,11 @@ import java.util.List;
 
 @Accessors(chain = true)
 @Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DebtSample implements DefaultDebtState {
 
-    @NonNull
+    @Setter(value = AccessLevel.PRIVATE)
     FolderId folderId;
     @Setter
     CartId cartId;
@@ -46,6 +45,14 @@ public class DebtSample implements DefaultDebtState {
     @Setter(value = AccessLevel.PRIVATE)
     List<Recall> recalls;
 
+    private DebtSample(@NonNull FolderId folderId) {
+        this
+                .setFolderId(folderId)
+                .setDiscountRate(Percentage.of(0))
+                .setTaxRate(Percentage.of(0))
+                .setDelayDayCount(0);
+    }
+
     public static DebtSample of(@NonNull FolderId folderId, @NonNull Amount amount) {
         return new DebtSample(folderId)
                 .setAmount(amount)
@@ -54,10 +61,11 @@ public class DebtSample implements DefaultDebtState {
                 .setRecalls(new ArrayList<>());
     }
 
-    public static DebtSample of(@NonNull FolderId folderId, @NonNull CartId cartId, @NonNull Amount cartAmount) {
+    public static DebtSample of(@NonNull FolderId folderId, @NonNull CartId cartId, @NonNull Amount amount) {
         return new DebtSample(folderId)
                 .setCartId(cartId)
-                .setCartAmount(cartAmount)
+                .setCartAmount(amount)
+                .setAmount(amount)
                 .setPayedAmount(Amount.ZERO)
                 .setPayments(new ArrayList<>())
                 .setRecalls(new ArrayList<>());
@@ -72,10 +80,10 @@ public class DebtSample implements DefaultDebtState {
                 .setDelayDate(state.getDelayDate())
                 .setDelayDayCount(state.getDelayDayCount())
                 .setNotes(state.getNotes())
-                .setAmount(state.getAmount() != null ? Amount.from(state.getAmount()) : Amount.ZERO)
+                .setAmount(Amount.from(state.getAmount()))
                 .setStatus(state.getStatus())
                 .setPayedAmount(Amount.from(state.getPayedAmount()))
-                .setPayments(new ArrayList<>(state.getPayments()))
-                .setRecalls(new ArrayList<>(state.getRecalls()));
+                .setPayments(state.getPayments() != null ? new ArrayList<>(state.getPayments()) : new ArrayList<>())
+                .setRecalls(state.getRecalls() != null ? new ArrayList<>(state.getRecalls()) : new ArrayList<>());
     }
 }

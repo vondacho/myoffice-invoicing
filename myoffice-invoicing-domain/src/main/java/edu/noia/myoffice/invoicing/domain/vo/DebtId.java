@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.UUID;
 
-@ToString
 @EqualsAndHashCode(of = "id", callSuper = false, doNotUseGetters = true)
 @Getter
 @RequiredArgsConstructor(staticName = "of")
@@ -18,5 +17,9 @@ public final class DebtId implements Identity {
 
     public static DebtId random() {
         return new DebtId(UUID.randomUUID());
+    }
+
+    public String toString() {
+        return id.toString();
     }
 }

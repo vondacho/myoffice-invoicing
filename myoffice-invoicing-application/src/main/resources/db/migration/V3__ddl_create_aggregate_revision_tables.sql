@@ -2,11 +2,11 @@ create table t_folder_aud (
 pk_id bigint not null,
 rev integer not null,
 revtype tinyint,
-asked_amount varchar(255),
-debt_amount varchar(255),
+asked_amount int,
+debt_amount int,
 id varchar(255),
-payed_amount varchar(255),
-provisioned_amount varchar(255),
+payed_amount int,
+provisioned_amount int,
 primary key (pk_id, rev)
 );
 

@@ -22,7 +22,7 @@ import static edu.noia.myoffice.common.util.validation.Rule.condition;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @FieldDefaults(level = AccessLevel.PROTECTED)
-public class Folder extends BaseEntity<Folder, FolderId, FolderSample> {
+public class Folder extends BaseEntity<Folder, FolderId, FolderState> {
 
     protected Folder(FolderId folderId) {
         super(folderId, new FolderSample());
@@ -116,12 +116,12 @@ public class Folder extends BaseEntity<Folder, FolderId, FolderSample> {
     }
 
     @Override
-    protected FolderSample cloneState() {
+    protected FolderState cloneState() {
         return FolderSample.from(state);
     }
 
     @Override
-    public void validate(FolderSample state) {
-        validateBean(state);
+    public FolderState validate(FolderState state) {
+        return validateBean(state);
     }
 }

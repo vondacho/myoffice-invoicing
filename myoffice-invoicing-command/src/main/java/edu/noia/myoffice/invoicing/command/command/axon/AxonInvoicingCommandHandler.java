@@ -1,8 +1,9 @@
 package edu.noia.myoffice.invoicing.command.command.axon;
 
 import edu.noia.myoffice.invoicing.domain.command.InvoicingCommandHandler;
-import edu.noia.myoffice.invoicing.domain.command.debt.PayDebtCommand;
+import edu.noia.myoffice.invoicing.domain.command.folder.PayDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.debt.RecallDebtCommand;
+import edu.noia.myoffice.invoicing.domain.command.debt.ValidateDebtCommand;
 import edu.noia.myoffice.invoicing.domain.command.folder.AskCommand;
 import edu.noia.myoffice.invoicing.domain.command.folder.CreateFolderCommand;
 import edu.noia.myoffice.invoicing.domain.command.folder.InvoiceCartCommand;
@@ -36,6 +37,12 @@ public class AxonInvoicingCommandHandler implements InvoicingCommandHandler {
     @Override
     public void charge(InvoiceCartCommand command) {
         commandHandler.charge(command);
+    }
+
+    @CommandHandler
+    @Override
+    public void validate(ValidateDebtCommand command) {
+        commandHandler.validate(command);
     }
 
     @CommandHandler

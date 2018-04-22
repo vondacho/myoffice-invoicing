@@ -11,6 +11,8 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.util.Optional;
 
 public class RecallType extends AbstractUserType {
 
@@ -29,9 +31,9 @@ public class RecallType extends AbstractUserType {
 
     @Override
     public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws SQLException {
-        return Recall.of(
-                Amount.ofCentimes(rs.getLong(names[0])),
-                rs.getDate(names[1]).toLocalDate());
+        Optional<Amount> amount = Optional.ofNullable(rs.getLong(names[0])).map(Amount::ofCentimes);
+        Optional<LocalDate> date = Optional.ofNullable(rs.getDate(names[1])).map(Date::toLocalDate);
+        return amount.flatMap(a -> date.map(d -> Recall.of(a, d))).orElse(null);
     }
 
     @Override
